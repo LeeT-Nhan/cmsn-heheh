@@ -1,0 +1,24 @@
+ *{
+            padding:0;
+            margin:0;
+            box-sizing: border-box;
+        }
+        html,body{
+            height: 100%;
+        }    
+        div{
+            background-color:black;
+            height: 100%;
+            position: relative;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        p{
+            text-align: center;
+            color:white;
+            font-family: "Pacifico";
+            font-size: 24px;
+        }
