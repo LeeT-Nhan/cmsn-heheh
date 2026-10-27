@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi em người anh êu 🎂💌</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap;700&family=Dancing+Script:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative select-none">
+
+    Container chứa các hạt trái tim/ngôi sao rơi trôi lơ lửng
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Thanh Âm Nhạc / Nút điều khiển -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-md border border-pink-200">
+        <button id="music-btn" class="flex items-center gap-2 text-pink-600 font-semibold text-sm hover:text-pink-700 transition">
+            <span id="music-icon" class="text-lg">🎵</span>
+            <span id="music-text">Phát nhạc</span>
+        </button>
+    </div>
+
+    <!-- Màn hình chính: Hiển thị chiếc phong bì 3D -->
+    <main id="envelope-scene" class="flex flex-col items-center justify-center z-10 transition-opacity duration-700">
+        
+        <!-- Lời nhắc nhở dễ thương -->
+        <div class="text-center mb-8 animate-bounce">
+            <span class="inline-block bg-white/90 text-pink-600 font-bold px-6 py-2.5 rounded-full shadow-lg border border-pink-200 text-base md:text-lg">
+                💌 Mời người đẹp mở thư ! ✨
+            </span>
+        </div>
+
+        <!-- Phong Bì 3D -->
+        <div class="perspective-1000">
+            <div id="envelope" class="envelope-wrapper flex items-center justify-center">
+                <!-- Nắp phong bì -->
+                <div class="envelope-flap"></div>
+                
+                <!-- Bức thư ló ra bên trong -->
+                <div class="letter-preview flex flex-col items-center justify-center text-center">
+                    <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
+                        <span class="text-xl">🎂</span>
+                    </div>
+                    <p class="font-title text-pink-500 text-xl font-bold">Happy Birthday!</p>
+                    <p class="text-xs text-gray-400 mt-1">Đang mở lời chúc...</p>
+                </div>
+
+                <!-- Túi phong bì bên ngoài -->
+                <div class="envelope-pocket"></div>
+
+                <!-- Tem niêm phong trái tim/vương miện -->
+                <div id="seal" class="absolute z-10 w-14 h-14 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white pulse-glow cursor-pointer transition-transform duration-300 hover:scale-110">
+                    <span class="text-2xl">💖</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chú thích chân trang -->
+        <p class="text-pink-400 text-xs mt-8 font-medium tracking-wide"> BY LTNhan WITH LOVE & MERCI 💕</p>
+    </main>
+
+    <!-- Modal Mở Bức Thư Chi Tiết (Tự động xuất hiện sau khi click phong bì) -->
+    <div id="letter-modal-container" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
+        
+        <div id="letter-card" class="letter-modal p-6 md:p-8 relative transform scale-90 transition-transform duration-500 my-auto">
+            
+            <!-- Họa tiết trang trí góc thư -->
+            <div class="absolute top-3 left-4 text-2xl opacity-60">🌸</div>
+            <div class="absolute top-3 right-4 text-2xl opacity-60">✨</div>
+            
+            <!-- Tiêu đề bức thư -->
+            <div class="text-center mb-4">
+                <h1 class="font-title text-2xl md:text-4xl text-pink-600 font-bold tracking-wide">
+                    Chúc Mừng Sinh Nhật! 🎉
+                </h1>
+                <div class="h-0.5 w-24 bg-pink-200 mx-auto mt-2 rounded-full"></div>
+            </div>
+
+            <!-- Khung chứa lời chúc tự gõ (Typewriter) -->
+            <div class="min-h-[180px] md:min-h-[200px] mb-6 px-2 md:px-4">
+                <p id="typed-text" class="font-handwriting text-xl md:text-3xl text-gray-700 leading-relaxed tracking-wide typing-cursor"></p>
+            </div>
+
+            <!-- Khung Bánh Sinh Nhật & Nút tương tác (Ẩn ban đầu, hiện sau khi viết xong) -->
+            <div id="cake-section" class="flex flex-col items-center justify-center space-y-5 opacity-0 transition-opacity duration-700 hidden">
+                
+                <!-- Bánh sinh nhật Cute -->
+                <div class="cake-container">
+                    <div id="flame" class="flame"></div>
+                    <div id="smoke" class="smoke"></div>
+                    <div class="candle"></div>
+                    <div class="cake-layer cake-top"></div>
+                    <div class="cake-layer cake-middle"></div>
+                    <div class="cake-layer cake-bottom"></div>
+                </div>
+
+                <!-- Nút bấm tương tác -->
+                <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button id="blow-btn" class="bg-gradient-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white font-bold px-6 py-3 rounded-full shadow-lg transform transition active:scale-95 flex items-center gap-2">
+                        <span>Thổi nớn ????? 🎂</span>
+                    </button>
+                    <button id="replay-btn" class="bg-white border-2 border-pink-300 text-pink-500 hover:bg-pink-50 font-bold px-5 py-2.5 rounded-full shadow-sm transform transition active:scale-95 flex items-center gap-2 text-sm">
+                        <span>🔄 Chúc lại he ?</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Họa tiết trang trí góc dưới -->
+            <div class="absolute bottom-3 right-4 text-2xl opacity-60">🎀</div>
+        </div>
+    </div>
+
+    <!-- Javascript Logic -->
+    <script>
+        /* --- NỘI DUNG LỜI CHÚC (Có thể dễ dàng chỉnh sửa ở đây) --- */
+        const birthdayMessage = "Gửi Em iu xinh đẹp! 🌸\n\nLại là một lời chúc khác của ThNhan,tôi chúc em có một ngày sinh nhật thật ngọt ngào, ngập tràn niềm zui và tiếng cười! 🎂\n\nBước sang tuổi mới, chúc emiu luôn xinh đẹp, rạng rỡ như những đóa hoa đẹp nhất, đạt được thật nhiều thành công và luôn được bao quanh bởi tình iu thương nồng nàng đắm say! ✨💖\n\nCảm ơn em vì đã xuất hiện và làm cho thế giới này trở nên dễ thương and xinh đẹp chưa từng có! Hép pi Bớt đây! 🎉🎈 \n\n Best Wish ✨💖";
+
+        /* --- BIẾN VÀ PHẦN TỬ DOM --- */
+        const envelope = document.getElementById('envelope');
+        const envelopeScene = document.getElementById('envelope-scene');
+        const letterModalContainer = document.getElementById('letter-modal-container');
+        const letterCard = document.getElementById('letter-card');
+        const typedTextEl = document.getElementById('typed-text');
+        const cakeSection = document.getElementById('cake-section');
+        const blowBtn = document.getElementById('blow-btn');
+        const replayBtn = document.getElementById('replay-btn');
+        const flame = document.getElementById('flame');
+        const smoke = document.getElementById('smoke');
+        const musicBtn = document.getElementById('music-btn');
+        const musicIcon = document.getElementById('music-icon');
+        const musicText = document.getElementById('music-text');
+
+        let typingIndex = 0;
+        let typingSpeed = 50; // Tốc độ gõ chữ (ms)
+        let isAudioPlaying = false;
+        let audioCtx = null;
+        let isCandleBlown = false;
+
+        /* --- TẠO HẠT HOẠT ẢNH TRÔI LƠ LỬNG (Trái tim, sao, hoa) --- */
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const icons = ['🌸', '✨', '💖', '⭐', '🎈', '☁️', '🍬'];
+            const particleCount = 20;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.innerText = icons[Math.floor(Math.random() * icons.length)];
+                
+                // Vị trí và thời gian ngẫu nhiên
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.fontSize = `${Math.random() * 14 + 14}px`;
+                particle.style.animationDuration = `${Math.random() * 6 + 6}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+
+        /* --- NHẠC NỀN CHÚC MỪNG SINH NHẬT (Dùng Web Audio API Synth nhẹ nhàng) --- */
+        function playBirthdayMelody() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // Nốt nhạc Happy Birthday (Tần số Hz & Độ dài)
+            const notes = [
+                { f: 264, d: 0.4 }, { f: 264, d: 0.4 }, { f: 297, d: 0.8 }, { f: 264, d: 0.8 }, { f: 352, d: 0.8 }, { f: 330, d: 1.2 },
+                { f: 264, d: 0.4 }, { f: 264, d: 0.4 }, { f: 297, d: 0.8 }, { f: 264, d: 0.8 }, { f: 396, d: 0.8 }, { f: 352, d: 1.2 },
+                { f: 264, d: 0.4 }, { f: 264, d: 0.4 }, { f: 528, d: 0.8 }, { f: 440, d: 0.8 }, { f: 352, d: 0.8 }, { f: 330, d: 0.8 }, { f: 297, d: 0.8 },
+                { f: 466, d: 0.4 }, { f: 466, d: 0.4 }, { f: 440, d: 0.8 }, { f: 352, d: 0.8 }, { f: 396, d: 0.8 }, { f: 352, d: 1.4 }
+            ];
+
+            let now = audioCtx.currentTime;
+            
+            notes.forEach((note) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine'; // Tiếng chuông/nhạc hộp phát ra nhẹ nhàng
+                osc.frequency.setValueAtTime(note.f, now);
+
+                // Đệm envelope cho âm thanh êm ái
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + note.d - 0.05);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + note.d);
+
+                now += note.d + 0.05;
+            });
+
+            isAudioPlaying = true;
+            musicIcon.innerText = '🔊';
+            musicText.innerText = 'Đang phát nhạc';
+        }
+
+        // Bật / Tắt nhạc thủ công
+        musicBtn.addEventListener('click', () => {
+            if (isAudioPlaying) {
+                if (audioCtx) audioCtx.suspend();
+                isAudioPlaying = false;
+                musicIcon.innerText = '🔇';
+                musicText.innerText = 'Phát nhạc';
+            } else {
+                playBirthdayMelody();
+            }
+        });
+
+        /* --- ÂM THANH GÕ CHỮ (Hiệu ứng click nhẹ) --- */
+        function playTypeSound() {
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600 + Math.random() * 200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch (e) {}
+        }
+
+        /* --- MỞ PHONG BÌ & BẮT ĐẦU HIỆU ỨNG --- */
+        envelope.addEventListener('click', openEnvelope);
+
+        function openEnvelope() {
+            if (envelope.classList.contains('open')) return;
+            
+            envelope.classList.add('open');
+
+            // Bật nhạc nền chúc mừng
+            if (!isAudioPlaying) {
+                playBirthdayMelody();
+            }
+
+            // Pháo hoa nhỏ chúc mừng khi mở nắp phong bì
+            confetti({
+                particleCount: 40,
+                spread: 60,
+                origin: { y: 0.7 }
+            });
+
+            // Chờ hiệu ứng phong bì mở xong -> Hiện Modal Bức Thư Chi Tiết
+            setTimeout(() => {
+                letterModalContainer.classList.remove('opacity-0', 'pointer-events-none');
+                letterCard.classList.remove('scale-90');
+                letterCard.classList.add('scale-100');
+                
+                // Bắt đầu gõ chữ tự động
+                setTimeout(startTyping, 400);
+            }, 800);
+        }
+
+        /* --- HIỆU ỨNG TỰ ĐỘNG GÕ CHỮ (Typewriter Effect) --- */
+        function startTyping() {
+            typedTextEl.innerText = '';
+            typingIndex = 0;
+            typedTextEl.classList.add('typing-cursor');
+            
+            function typeNextChar() {
+                if (typingIndex < birthdayMessage.length) {
+                    const char = birthdayMessage.charAt(typingIndex);
+                    typedTextEl.innerText += char;
+                    typingIndex++;
+
+                    // Âm thanh gõ nhẹ
+                    if (char !== ' ' && char !== '\n') {
+                        playTypeSound();
+                    }
+
+                    // Tốc độ biến thiên tự nhiên theo dấu câu
+                    let delay = typingSpeed;
+                    if (['.', '!', '?', '\n'].includes(char)) {
+                        delay = 450;
+                    } else if ([',', '🌸', '🎂', '✨', '💖'].includes(char)) {
+                        delay = 200;
+                    }
+
+                    setTimeout(typeNextChar, delay);
+                } else {
+                    // Viết xong -> Tắt con trỏ & hiện bánh sinh nhật
+                    typedTextEl.classList.remove('typing-cursor');
+                    showCakeSection();
+                }
+            }
+
+            typeNextChar();
+        }
+
+        /* --- HIỂN THỊ PHẦN BÁNH SINH NHẬT & NẾN --- */
+        function showCakeSection() {
+            cakeSection.classList.remove('hidden');
+            setTimeout(() => {
+                cakeSection.classList.remove('opacity-0');
+            }, 100);
+        }
+
+        /* --- HÀNH ĐỘNG THỔI NẾN --- */
+        blowBtn.addEventListener('click', () => {
+            if (isCandleBlown) return;
+            
+            // Dập tắt ngọn lửa & tạo khói
+            flame.style.display = 'none';
+            smoke.classList.add('puff');
+            isCandleBlown = true;
+
+            // Đổi nút bấm
+            blowBtn.innerHTML = '<span>Đã thổi nến ✨</span>';
+            blowBtn.classList.replace('from-pink-500', 'from-gray-400');
+            blowBtn.classList.replace('to-rose-400', 'to-gray-500');
+
+            // Bùng nổ Pháo Hoa Giấy rực rỡ (Confetti Celebration)
+            launchConfettiCelebration();
+        });
+
+        /* --- BÙNG NỔ PHÁO HOA GIẤY (Confetti Effect) --- */
+        function launchConfettiCelebration() {
+            const count = 200;
+            const defaults = {
+                origin: { y: 0.7 }
+            };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, {
+                spread: 26,
+                startVelocity: 55,
+            });
+            fire(0.2, {
+                spread: 60,
+            });
+            fire(0.35, {
+                spread: 100,
+                decay: 0.91,
+                scalar: 0.8
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 25,
+                decay: 0.92,
+                scalar: 1.2
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 45,
+            });
+        }
+
+        /* --- NÚT XEM LẠI ĐỌC THƯ (Replay) --- */
+        replayBtn.addEventListener('click', () => {
+            // Reset trạng thái nến
+            flame.style.display = 'block';
+            smoke.classList.remove('puff');
+            isCandleBlown = false;
+            blowBtn.innerHTML = '<span>Thổi nến 🎂</span>';
+            blowBtn.classList.replace('from-gray-400', 'from-pink-500');
+            blowBtn.classList.replace('to-gray-500', 'to-rose-400');
+
+            // Ẩn bánh & chạy lại hiệu ứng viết chữ
+            cakeSection.classList.add('opacity-0');
+            setTimeout(() => {
+                cakeSection.classList.add('hidden');
+                startTyping();
+            }, 300);
+        });
+
+        // Khởi tạo hạt trang trí khi trang web tải xong
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+        });
+    </script>
+</body>
+</html>
